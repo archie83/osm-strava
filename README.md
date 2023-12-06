@@ -6,6 +6,16 @@
 
 This program will detect missing ways in OSM for your favorite area, and generate a GeoJSON file that will enable you to create a [MapRoulette](https://maproulette.org/) challenge.
 
+### Installation
+
+Download the strava.py file on your computer. Then, create the directory */var/cache/strava* to store the Strava heat map tiles.
+
+You may have to install some libraries if they are not already installed :
+
+- [pillow](https://pypi.org/project/Pillow/)
+- [numpy](https://numpy.org/)
+- [shapely](https://pypi.org/project/shapely/)
+
 ### Usage
 
 ```
