@@ -99,29 +99,6 @@ def plot_circle(draw, center_merc, bbox, diameter, pixel_size):
         draw.ellipse(bbox, fill=0)
 
 # Recursive routine to measure the area of the trace on heatmap
-def measure_trace_area(image, row, col, target_color, length):
-    # Check if the current pixel is within the image boundaries
-    if row < 0 or row >= len(image) or col < 0 or col >= len(image[0]):
-        return length
-
-    # Check if the color of the current pixel matches the target color
-    if image[row][col] < target_color:
-        return length
-
-    # Change the color of the current pixel to the replacement color
-    image[row][col] = 0
-    length = length+1
-    if length > 100: 
-        return length   # To avoid stack overflow
-
-    # Recursively call measure_trace_area on adjacent pixels
-    length = measure_trace_area(image, row + 1, col, target_color, length)  # Down
-    length = measure_trace_area(image, row - 1, col, target_color, length)  # Up
-    length = measure_trace_area(image, row, col + 1, target_color, length)  # Right
-    length = measure_trace_area(image, row, col - 1, target_color, length)  # Left
-    return length
-
-# Recursive routine to measure the area of the trace on heatmap
 def check_trace_area(image, row, col, target_color, min_size, size):
     # Check if the current pixel is within the image boundaries
     if row < 0 or row >= len(image) or col < 0 or col >= len(image[0]):
@@ -306,18 +283,18 @@ def check_strava_tile(polygon_area, x, y, zoom):
 # ----------------------------
 parser = argparse.ArgumentParser()
 
-parser.add_argument("-a", "--area", help="Area of interest (GEOJSON)")
-parser.add_argument("-d", "--distance", type=int, default = 35, help="Maximum distance between Strava hot point and OSM way")
+parser.add_argument("-a", "--area", help="Area of interest (GeoJSON)")
 parser.add_argument("-m", "--minlevel", type=int, default = 100, help="Minimum Strava level (0-255)")
-parser.add_argument("-o", "--offset", type=int, help="Strava tile offset (0-3)")
-parser.add_argument("-z", "--zoom", default = 15, help="Strava zoom level (10-15)")
+parser.add_argument("-d", "--distance", type=int, default = 35, help="Maximum distance between Strava hot point and OSM way")
 parser.add_argument("-s", "--size", type=int, default = 20, help="Minimum size of Strava trace (in pixels)")
+parser.add_argument("-z", "--zoom", default = 15, help="Strava zoom level (10-15)")
+parser.add_argument("-o", "--offset", type=int, help="Strava tile offset (0-3)")
 parser.add_argument("-b", "--tasks_db", help="Tasks database")
 parser.add_argument("-g", "--geojson", help="Output file")
 parser.add_argument('-v', '--verbose', action='store_true', help="Display more information")
 parser.add_argument('-q', '--quiet', action='store_true', help="Do not display progress")
-parser.add_argument('-x', '--x', type=int, help="Strava Tile x coordinate (debug mode only)")
-parser.add_argument('-y', '--y', type=int, help="Strava Tile y coordinate (debug mode only)")
+parser.add_argument('-x', '--x', type=int, help="Strava Tile x coordinate")
+parser.add_argument('-y', '--y', type=int, help="Strava Tile y coordinate")
 parser.add_argument('--debug', action='store_true', help="Debug mode")
 
 args = parser.parse_args()
