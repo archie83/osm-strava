@@ -257,10 +257,10 @@ def check_strava_tile(polygon_area, x, y, zoom):
                 status = ""
                 if tasks_db is not None:
                     # Check if this task has already been processed
-                    result = cur.execute(f"SELECT TaskStatus,Mapper,TaskLink FROM tasks WHERE TaskName='{id}'").fetchone()
-                    if result is not None:
-                        status=result[0]
-                        print_verbose(status, ":", result[2][21:-2])
+                    res = cur.execute(f"SELECT TaskStatus,Mapper,TaskLink FROM tasks WHERE TaskName='{id}'").fetchone()
+                    if res is not None:
+                        status=res[0]
+                        print_verbose(status, ":", res[2][21:-2])
 
                 if status == "Fixed" or status == "Already_Fixed":
                     print(f"Warning: This task has been marked as fixed by {line[1]}, but it seems it is not: {line[2][21:-2]}/inspect", file=sys.stderr)
