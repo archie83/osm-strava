@@ -11,9 +11,7 @@ import time
 import requests
 from PIL import Image, ImageDraw
 import numpy as np
-from pathlib import Path
 import xml.etree.ElementTree as ET
-from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 from shapely.geometry import shape, GeometryCollection
 import sqlite3
