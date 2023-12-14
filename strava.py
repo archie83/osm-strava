@@ -261,7 +261,7 @@ def check_strava_tile(polygon_area, x, y, zoom):
                         print_verbose(status, ":", res[2][21:-2])
 
                 if status == "Fixed" or status == "Already_Fixed":
-                    print(f"Warning: This task has been marked as fixed by {line[1]}, but it seems it is not: {line[2][21:-2]}/inspect", file=sys.stderr)
+                    print(f"Warning: This task has been marked as fixed by {res[1]}, but it seems it is not: {res[2][21:-2]}/inspect", file=sys.stderr)
 
                 if status != "Too_Hard" and status != "Not_an_Issue":
                     # print GEOJSON line for MapRoulette
