@@ -163,7 +163,13 @@ def overpass_request(lat_ul_merc, lon_ul_merc, lat_lr_merc, lon_lr_merc):
     lon_ul = x2lon(lon_ul_merc)
     lat_ul = y2lat(lat_ul_merc)
     lon_lr = x2lon(lon_lr_merc)
-    url = "https://overpass-api.de/api/interpreter?data=" + requests.utils.quote(f'way[highway]({lat_lr},{lon_ul},{lat_ul},{lon_lr});out geom;way[leisure=track]({lat_lr},{lon_ul},{lat_ul},{lon_lr});out geom;relation[highway]({lat_lr},{lon_ul},{lat_ul},{lon_lr});>;out geom;relation[leisure=track]({lat_lr},{lon_ul},{lat_ul},{lon_lr});>;out geom;')
+    url = "https://overpass-api.de/api/interpreter?data=" + requests.utils.quote(
+        f'way[highway]({lat_lr},{lon_ul},{lat_ul},{lon_lr});out geom;'
+        f'way[leisure=track]({lat_lr},{lon_ul},{lat_ul},{lon_lr});out geom;'
+        f'way[route=ferry]({lat_lr},{lon_ul},{lat_ul},{lon_lr});out geom;'
+        f'relation[highway]({lat_lr},{lon_ul},{lat_ul},{lon_lr});>;out geom;'
+        f'relation[leisure=track]({lat_lr},{lon_ul},{lat_ul},{lon_lr});>;out geom;'
+        f'relation[route=ferry]({lat_lr},{lon_ul},{lat_ul},{lon_lr});>;out geom;')
 
     for retries in range(10):
             r = requests.get(url, allow_redirects=True, stream=True)
