@@ -19,27 +19,29 @@ You may have to install some libraries if they are not already installed :
 ### Usage
 
 ```
-Usage: strava.py [-h] [-a AREA] [-d DISTANCE] [-m MINLEVEL] [-o OFFSET] [-z ZOOM] [-s SIZE] [-b TASKS_DB] [-g GEOJSON] [-v] [-q] [-x X] [-y Y] [--debug]
+usage: strava.py [-h] [-a AREA] [-m MINLEVEL] [-d DISTANCE] [-s SIZE] [-z ZOOM] [-c ACTIVITY] [-o OFFSET] [-b TASKS_DB] [-g GEOJSON] [-v] [-q] [-x X] [-y Y] [--debug]
 
 optional arguments:
   -h, --help            show this help message and exit
   -a AREA, --area AREA  Area of interest (GeoJSON)
   -m MINLEVEL, --minlevel MINLEVEL
-                        Minimum Strava level (0-255) (default = 100)
+                        Minimum Strava level (0-255)
   -d DISTANCE, --distance DISTANCE
-                        Maximum distance between Strava hot point and OSM way (default = 35 m)
-  -s SIZE, --size SIZE  Minimum size of Strava trace (in pixels) (default = 20)
+                        Maximum distance between Strava hot point and OSM way
+  -s SIZE, --size SIZE  Minimum size of Strava trace (in pixels)
+  -z ZOOM, --zoom ZOOM  Strava zoom level (10-15)
+  -c ACTIVITY, --activity ACTIVITY
+                        Strava activity (default=run)
   -o OFFSET, --offset OFFSET
-                        Strava tile offset (0-3) 
-  -z ZOOM, --zoom ZOOM  Strava zoom level (10-15) (default = 15)
-  -g GEOJSON, --geojson GEOJSON
-                        Output file
+                        Strava tile offset (0-3)
   -b TASKS_DB, --tasks_db TASKS_DB
                         Tasks database
+  -g GEOJSON, --geojson GEOJSON
+                        Output file
   -v, --verbose         Display more information
   -q, --quiet           Do not display progress
-  -x X, --x X           Strava Tile x coordinate
-  -y Y, --y Y           Strava Tile y coordinate
+  -x X, --x X           Strava Tile x coordinate (for debugging)
+  -y Y, --y Y           Strava Tile y coordinate (for debugging)
   --debug               Debug mode
 ```
 
@@ -68,6 +70,14 @@ Minimum size of Strava trace (in pixels) (default = 20).
 
 Strava zoom level (10-15). **Warning**: only the level 15 has been tested (default value).
 
+#### -c \<ACTIVITY\>, --activity \<ACTIVITY\>
+
+Strava activity (default=run)
+
+#### -o \<OFFSET\>, --offset \<OFFSET\>
+
+Strava tile offset (0-3). See below.
+
 ####  -g \<output file\>, --geojson \<output file\>
 
 Output file to be imported in MapRoulette.
@@ -76,7 +86,11 @@ Output file to be imported in MapRoulette.
 
 Tasks database. If you do several rounds (see worflow explained below), this database must contain the MapRoulette tasks already processed, to avoid new detection of tasks marked as "Not an issue".
 
-### Worflows
+#### -x \<X\>, --x \<X\> and -y \<Y\>, --y \<Y\>
+
+For debugging, instead of providing an area, you can provide the x and y coordinates of the Strava tile you want to process.
+
+### Workflows
 
 This is an iterative process. When the MapRoulette challenge is finished, you can run again strava.py to detect more missing ways, for example by lowering the detection thresholds. You'll stop when there are too many tasks marked as "Not an issue".
 
