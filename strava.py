@@ -339,6 +339,14 @@ if args.x is not None and args.y is not None:
     check_strava_tile(None, x, y, zoom)
     exit(0)
 
+if args.x is not None or args.y is not None:
+    print("Error: you must provide both x and y tile coordinates")
+    exit(1)
+
+if args.area is None:
+    print("Error: you must provide either an area, either tile coordinates")
+    exit(1)
+
 # Get polygon of area
 with open(args.area) as f:
   features = json.load(f)["features"]
