@@ -169,8 +169,8 @@ def overpass_request(lat_ul_merc, lon_ul_merc, lat_lr_merc, lon_lr_merc):
         f'relation[highway]({bbox});>;out geom;'
         f'way[railway]({bbox});out geom;'
         f'relation[railway]({bbox});>;out geom;'
-        f'way[leisure=track]({bbox});out geom;'
-        f'relation[leisure=track]({bbox});>;out geom;'
+        f'way[leisure~"track|pitch"]({bbox});out geom;'
+        f'relation[leisure~"track|pitch"]({bbox});>;out geom;'
         f'way[route=ferry]({bbox});out geom;'
         f'relation[route=ferry]({bbox});>;out geom;')
 
@@ -219,8 +219,10 @@ def check_strava_tile(polygon_area, x, y, zoom):
             area = False
             coords = []
             for tag in way.iter('tag'):
-                if tag.attrib["k"] == "area" and tag.attrib["v"] == "yes":
+                if (tag.attrib["k"] == "area" and tag.attrib["v"] == "yes") or (tag.attrib["k"] == "leisure" and tag.attrib["v"] != "track"):
                     area = True
+                if tag.attrib["k"] == "area" and tag.attrib["v"] == "no":
+                    area = False
             for node in way.iter('nd'):
                 coords.append((lon2x(float(node.attrib["lon"])), lat2y(float(node.attrib["lat"])) ))
             if area:
@@ -233,10 +235,12 @@ def check_strava_tile(polygon_area, x, y, zoom):
             area = False
             coords = []
             for tag in relation.iter('tag'):
-                if tag.attrib["k"] == "area" and tag.attrib["v"] == "yes":
+                if (tag.attrib["k"] == "area" and tag.attrib["v"] == "yes") or (tag.attrib["k"] == "leisure" and tag.attrib["v"] != "track"):
                     area = True
                 if tag.attrib["k"] == "type" and tag.attrib["v"] == "multipolygon":
                     area = True
+                if tag.attrib["k"] == "area" and tag.attrib["v"] == "no":
+                    area = False
             for node in relation.iter('nd'):
                 coords.append((lon2x(float(node.attrib["lon"])), lat2y(float(node.attrib["lat"])) ))
             if area:
