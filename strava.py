@@ -163,13 +163,16 @@ def overpass_request(lat_ul_merc, lon_ul_merc, lat_lr_merc, lon_lr_merc):
     lon_ul = x2lon(lon_ul_merc)
     lat_ul = y2lat(lat_ul_merc)
     lon_lr = x2lon(lon_lr_merc)
+    bbox = f'{lat_lr},{lon_ul},{lat_ul},{lon_lr}'
     url = "https://overpass-api.de/api/interpreter?data=" + requests.utils.quote(
-        f'way[highway]({lat_lr},{lon_ul},{lat_ul},{lon_lr});out geom;'
-        f'way[leisure=track]({lat_lr},{lon_ul},{lat_ul},{lon_lr});out geom;'
-        f'way[route=ferry]({lat_lr},{lon_ul},{lat_ul},{lon_lr});out geom;'
-        f'relation[highway]({lat_lr},{lon_ul},{lat_ul},{lon_lr});>;out geom;'
-        f'relation[leisure=track]({lat_lr},{lon_ul},{lat_ul},{lon_lr});>;out geom;'
-        f'relation[route=ferry]({lat_lr},{lon_ul},{lat_ul},{lon_lr});>;out geom;')
+        f'way[highway]({bbox});out geom;'
+        f'relation[highway]({bbox});>;out geom;'
+        f'way[railway]({bbox});out geom;'
+        f'relation[railway]({bbox});>;out geom;'
+        f'way[leisure=track]({bbox});out geom;'
+        f'relation[leisure=track]({bbox});>;out geom;'
+        f'way[route=ferry]({bbox});out geom;'
+        f'relation[route=ferry]({bbox});>;out geom;')
 
     for retries in range(10):
             r = requests.get(url, allow_redirects=True, stream=True)
@@ -311,6 +314,7 @@ threshold = args.minlevel
 print_verbose("Threshold = ", threshold)
 zoom=args.zoom
 min_size=args.size
+print_verbose("Minimum size = ", min_size)
 tasks_db = args.tasks_db
 
 # Create output file
@@ -334,7 +338,7 @@ if args.x is not None and args.y is not None:
 with open(args.area) as f:
   features = json.load(f)["features"]
 
-# NOTE: buffer(0) is a trick for fixing scenarios where polygons have overlapping coordinates 
+# NOTE: buffer(0) is a trick for fixing scenarios where polygons have overlapping coordinates
 polygon_area = GeometryCollection([shape(feature["geometry"]).buffer(0) for feature in features])
 bbox_area = polygon_area.bounds
 print_verbose ("Area bounding box:", bbox_area)
