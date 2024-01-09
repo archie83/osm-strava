@@ -123,7 +123,7 @@ def check_trace_area(image, row, col, target_color, min_size, size):
 # Check if Strava file is available in cache and download it if not in cache
 def fetch_strava_tile(zoom, x, y):
     cache_dir = '/var/cache/strava'
-    cache_file_path = os.path.join(cache_dir, str(zoom), str(x), str(y)+'.png')
+    cache_file_path = os.path.join(cache_dir, activity, str(zoom), str(x), str(y)+'.png')
     if os.path.isfile(cache_file_path):
         if os.path.getsize(cache_file_path) > 0:
             print_verbose("Tile in cache:", cache_file_path)
@@ -131,14 +131,14 @@ def fetch_strava_tile(zoom, x, y):
         else:
             print_verbose("Empty tile in cache :", cache_file_path)
             return None
-    dir1 = os.path.join(cache_dir, str(zoom))
+    dir1 = os.path.join(cache_dir, activity, str(zoom))
     if not os.path.isdir(dir1):
-        os.mkdir(dir1)
+        os.makedirs(dir1, exist_ok=True)
     dir2 = os.path.join(dir1, str(x))
     if not os.path.isdir(dir2):
         os.mkdir(dir2)
 
-    url =  f'https://strava-heatmap.tiles.freemap.sk/run/hot/{zoom}/{x}/{y}.png'
+    url =  f'https://strava-heatmap.tiles.freemap.sk/{activity}/hot/{zoom}/{x}/{y}.png'
     print_verbose("Downloading Strava tile at", url)
     try:
         r = requests.get(url, allow_redirects=True)
@@ -295,6 +295,7 @@ parser.add_argument("-m", "--minlevel", type=int, default = 100, help="Minimum S
 parser.add_argument("-d", "--distance", type=int, default = 35, help="Maximum distance between Strava hot point and OSM way")
 parser.add_argument("-s", "--size", type=int, default = 20, help="Minimum size of Strava trace (in pixels)")
 parser.add_argument("-z", "--zoom", default = 15, help="Strava zoom level (10-15)")
+parser.add_argument("-c", "--activity", default='run', help="Strava activity (default=run)")
 parser.add_argument("-o", "--offset", type=int, help="Strava tile offset (0-3)")
 parser.add_argument("-b", "--tasks_db", help="Tasks database")
 parser.add_argument("-g", "--geojson", help="Output file")
@@ -315,6 +316,8 @@ print_verbose("Threshold = ", threshold)
 zoom=args.zoom
 min_size=args.size
 print_verbose("Minimum size = ", min_size)
+activity=args.activity
+print_verbose("Activity = ", activity)
 tasks_db = args.tasks_db
 
 # Create output file
