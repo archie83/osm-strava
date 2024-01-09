@@ -85,8 +85,8 @@ def plot_line(draw, coords_merc, bbox, w, pixel_size):
     draw.line(transform(coords_merc, bbox, pixel_size), fill=0, width=w)
 
 # Plot a polygon on the image
-def plot_polygon(draw, coords_merc, bbox, w, pixel_size):
-    draw.polygon(transform(coords_merc, bbox, pixel_size), outline=0, fill=0, width=w)
+def plot_polygon(draw, coords_merc, bbox, pixel_size):
+    draw.polygon(transform(coords_merc, bbox, pixel_size), outline=0, fill=0)
 
 # Plot a circle on the image
 def plot_circle(draw, center_merc, bbox, diameter, pixel_size):
@@ -224,10 +224,9 @@ def check_strava_tile(polygon_area, x, y, zoom):
             for node in way.iter('nd'):
                 coords.append((lon2x(float(node.attrib["lon"])), lat2y(float(node.attrib["lat"])) ))
             if area:
-                plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-            else:
-                plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-                plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+                plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), pixel_size)
+            plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+            plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
 
         # Draw the OSM multipolygons with black color on the Strava image
         for relation in osm_root.iter('relation'):
@@ -241,10 +240,9 @@ def check_strava_tile(polygon_area, x, y, zoom):
             for node in relation.iter('nd'):
                 coords.append((lon2x(float(node.attrib["lon"])), lat2y(float(node.attrib["lat"])) ))
             if area:
-                plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-            else:
-                plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-                plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+                plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), pixel_size)
+            plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+            plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
 
         if debug:
             image.save(f"test_{zoom}_{x}_{y}.png") # For debugging
