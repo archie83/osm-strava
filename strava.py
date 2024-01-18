@@ -189,9 +189,13 @@ def overpass_request(lat_ul_merc, lon_ul_merc, lat_lr_merc, lon_lr_merc):
         '(nwr[highway~"bridleway|corridor|crossing|cycleway|escape|footway|living_street|motorway|'
         'motorway_link|path|pedestrian|primary|primary_link|raceway|residential|road|secondary|'
         'secondary_link|service|steps|tertiary|tertiary_link|track|trunk|trunk_link|unclassified"];'
+        'nwr["area:highway"~"bridleway|corridor|crossing|cycleway|escape|footway|living_street|'
+        'motorway|motorway_link|path|pedestrian|primary|primary_link|raceway|residential|road|'
+        'secondary|secondary_link|service|steps|tertiary|tertiary_link|track|trunk|trunk_link|'
         'unclassified"];'
         'nwr[railway];'
         'nwr[aeroway~"runway|taxiway"];'
+        'nwr["area:aeroway"~"runway|taxiway"];'
         'nwr[leisure~"track|pitch"];'
         'nwr[route=ferry];);out geom;')
 
@@ -250,6 +254,7 @@ def check_strava_tile(polygon_area, x, y, zoom):
             coords = []
             for tag in way.iter('tag'):
                 if (tag.attrib["k"] == "area" and tag.attrib["v"] == "yes") or \
+                   tag.attrib["k"] .startswith("area:") or \
                    (tag.attrib["k"] == "leisure" and tag.attrib["v"] != "track"):
                     area = True
                 if tag.attrib["k"] == "area" and tag.attrib["v"] == "no":
@@ -266,6 +271,7 @@ def check_strava_tile(polygon_area, x, y, zoom):
             area = False
             for tag in relation.iter('tag'):
                 if (tag.attrib["k"] == "area" and tag.attrib["v"] == "yes") or \
+                   tag.attrib["k"] .startswith("area:") or \
                    (tag.attrib["k"] == "leisure" and tag.attrib["v"] != "track"):
                     area = True
                 if tag.attrib["k"] == "type" and tag.attrib["v"] == "multipolygon":
