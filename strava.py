@@ -261,7 +261,6 @@ def check_strava_tile(polygon_area, x, y, zoom):
         # Draw the OSM multipolygons with black color on the Strava image
         for relation in osm_root.iter('relation'):
             area = False
-            coords = []
             for tag in relation.iter('tag'):
                 if (tag.attrib["k"] == "area" and tag.attrib["v"] == "yes") or \
                    (tag.attrib["k"] == "leisure" and tag.attrib["v"] != "track"):
@@ -270,12 +269,48 @@ def check_strava_tile(polygon_area, x, y, zoom):
                     area = True
                 if tag.attrib["k"] == "area" and tag.attrib["v"] == "no":
                     area = False
-            for node in relation.iter('nd'):
-                coords.append((lon2x(float(node.attrib["lon"])), lat2y(float(node.attrib["lat"]))))
+            member_coords = []
+            for member in relation.iter('member'):
+                if member.attrib['type'] == 'way' and member.attrib['role'] == 'outer':
+                    member_coords.append([])
+                    for node in member.iter('nd'):
+                        print("Relation member node:", node.attrib)
+                        member_coords[-1].append((lon2x(float(node.attrib["lon"])),
+                                                 lat2y(float(node.attrib["lat"]))))
             if area:
-                plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), pixel_size)
-            plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-            plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+                polygons = []
+                while len(member_coords) > 0:
+                    coords = member_coords.pop(0)
+                    while coords[0] != coords[-1]:
+                        for coord in member_coords:
+                            if coords[-1] == coord[0]:
+                                member_coords.remove(coord)
+                                coords = coords + coord    # Merge lists
+                                break
+                            elif coords[-1] == coord[-1]:
+                                member_coords.remove(coord)
+                                coord.reverse()
+                                coords = coords + coord    # Merge lists
+                                break
+                    polygons.append(coords)
+
+                for coords in polygons:
+                    plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), pixel_size)
+                    plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+                    plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+            else:
+                for member in relation.iter('member'):
+                    print("Relation member:", member.attrib)
+                    if member.attrib['type'] == 'way':
+                        member_coords = []
+                        for node in member.iter('nd'):
+                            print("Relation member node:", node.attrib)
+                            member_coords.append((lon2x(float(node.attrib["lon"])),
+                                                 lat2y(float(node.attrib["lat"]))))
+                        print("Member coords:", member_coords)
+                        plot_line(draw, member_coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+                        plot_circle(draw, member_coords, get_merc_bbox(x, y, zoom),
+                                    width, pixel_size)
 
         if debug:
             image.save(f"test_{zoom}_{x}_{y}.png")  # For debugging
