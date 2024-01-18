@@ -210,6 +210,81 @@ def overpass_request(lat_ul_merc, lon_ul_merc, lat_lr_merc, lon_lr_merc):
         sys.exit(1)
 
 
+# Draw the OSM ways with black color on the Strava image
+def plot_ways(osm_root, draw, width, pixel_size):
+    for way in osm_root.iter('way'):
+        area = False
+        coords = []
+        for tag in way.iter('tag'):
+            if (tag.attrib["k"] == "area" and tag.attrib["v"] == "yes") or \
+               tag.attrib["k"] .startswith("area:") or \
+               (tag.attrib["k"] == "leisure" and tag.attrib["v"] != "track"):
+                area = True
+            if tag.attrib["k"] == "area" and tag.attrib["v"] == "no":
+                area = False
+        for node in way.iter('nd'):
+            coords.append((lon2x(float(node.attrib["lon"])), lat2y(float(node.attrib["lat"]))))
+        if area:
+            plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), pixel_size)
+        plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+        plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+
+
+# Draw the OSM relations with black color on the Strava image
+# -----------------------------------------------------------
+
+
+def plot_relations(osm_root, draw, width, pixel_size):
+    for relation in osm_root.iter('relation'):
+        area = False
+        for tag in relation.iter('tag'):
+            if (tag.attrib["k"] == "area" and tag.attrib["v"] == "yes") or \
+               tag.attrib["k"] .startswith("area:") or \
+               (tag.attrib["k"] == "leisure" and tag.attrib["v"] != "track"):
+                area = True
+            if tag.attrib["k"] == "type" and tag.attrib["v"] == "multipolygon":
+                area = True
+            if tag.attrib["k"] == "area" and tag.attrib["v"] == "no":
+                area = False
+        member_coords = []
+        for member in relation.iter('member'):
+            if member.attrib['type'] == 'way' and member.attrib['role'] == 'outer':
+                member_coords.append([])
+                for node in member.iter('nd'):
+                    member_coords[-1].append((lon2x(float(node.attrib["lon"])),
+                                             lat2y(float(node.attrib["lat"]))))
+        if area:
+            polygons = []
+            while len(member_coords) > 0:
+                coords = member_coords.pop(0)
+                while coords[0] != coords[-1]:
+                    for coord in member_coords:
+                        if coords[-1] == coord[0]:
+                            member_coords.remove(coord)
+                            coords = coords + coord    # Merge lists
+                            break
+                        elif coords[-1] == coord[-1]:
+                            member_coords.remove(coord)
+                            coord.reverse()
+                            coords = coords + coord    # Merge lists
+                            break
+                polygons.append(coords)
+
+            for coords in polygons:
+                plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), pixel_size)
+                plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+                plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+        else:
+            for member in relation.iter('member'):
+                if member.attrib['type'] == 'way':
+                    member_coords = []
+                    for node in member.iter('nd'):
+                        member_coords.append((lon2x(float(node.attrib["lon"])),
+                                             lat2y(float(node.attrib["lat"]))))
+                    plot_line(draw, member_coords, get_merc_bbox(x, y, zoom), width, pixel_size)
+                    plot_circle(draw, member_coords, get_merc_bbox(x, y, zoom),
+                                width, pixel_size)
+
 # This routine check if a strava heatmap tile contains a way not in OSM
 # ---------------------------------------------------------------------
 def check_strava_tile(polygon_area, x, y, zoom):
@@ -248,74 +323,9 @@ def check_strava_tile(polygon_area, x, y, zoom):
         osm_root = overpass_request(lat_ul_merc + distance, lon_ul_merc - distance,
                                     lat_lr_merc - distance, lon_lr_merc + distance)
 
-        # Draw the OSM ways with black color on the Strava image
-        for way in osm_root.iter('way'):
-            area = False
-            coords = []
-            for tag in way.iter('tag'):
-                if (tag.attrib["k"] == "area" and tag.attrib["v"] == "yes") or \
-                   tag.attrib["k"] .startswith("area:") or \
-                   (tag.attrib["k"] == "leisure" and tag.attrib["v"] != "track"):
-                    area = True
-                if tag.attrib["k"] == "area" and tag.attrib["v"] == "no":
-                    area = False
-            for node in way.iter('nd'):
-                coords.append((lon2x(float(node.attrib["lon"])), lat2y(float(node.attrib["lat"]))))
-            if area:
-                plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), pixel_size)
-            plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-            plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-
-        # Draw the OSM relations with black color on the Strava image
-        for relation in osm_root.iter('relation'):
-            area = False
-            for tag in relation.iter('tag'):
-                if (tag.attrib["k"] == "area" and tag.attrib["v"] == "yes") or \
-                   tag.attrib["k"] .startswith("area:") or \
-                   (tag.attrib["k"] == "leisure" and tag.attrib["v"] != "track"):
-                    area = True
-                if tag.attrib["k"] == "type" and tag.attrib["v"] == "multipolygon":
-                    area = True
-                if tag.attrib["k"] == "area" and tag.attrib["v"] == "no":
-                    area = False
-            member_coords = []
-            for member in relation.iter('member'):
-                if member.attrib['type'] == 'way' and member.attrib['role'] == 'outer':
-                    member_coords.append([])
-                    for node in member.iter('nd'):
-                        member_coords[-1].append((lon2x(float(node.attrib["lon"])),
-                                                 lat2y(float(node.attrib["lat"]))))
-            if area:
-                polygons = []
-                while len(member_coords) > 0:
-                    coords = member_coords.pop(0)
-                    while coords[0] != coords[-1]:
-                        for coord in member_coords:
-                            if coords[-1] == coord[0]:
-                                member_coords.remove(coord)
-                                coords = coords + coord    # Merge lists
-                                break
-                            elif coords[-1] == coord[-1]:
-                                member_coords.remove(coord)
-                                coord.reverse()
-                                coords = coords + coord    # Merge lists
-                                break
-                    polygons.append(coords)
-
-                for coords in polygons:
-                    plot_polygon(draw, coords, get_merc_bbox(x, y, zoom), pixel_size)
-                    plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-                    plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-            else:
-                for member in relation.iter('member'):
-                    if member.attrib['type'] == 'way':
-                        member_coords = []
-                        for node in member.iter('nd'):
-                            member_coords.append((lon2x(float(node.attrib["lon"])),
-                                                 lat2y(float(node.attrib["lat"]))))
-                        plot_line(draw, member_coords, get_merc_bbox(x, y, zoom), width, pixel_size)
-                        plot_circle(draw, member_coords, get_merc_bbox(x, y, zoom),
-                                    width, pixel_size)
+        # Plot OSM features on the Strava tile with black color
+        plot_ways(osm_root, draw, width, pixel_size)
+        plot_relations(osm_root, draw, width, pixel_size)
 
         if debug:
             image.save(f"test_{zoom}_{x}_{y}.png")  # For debugging
