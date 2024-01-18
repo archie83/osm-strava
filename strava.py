@@ -188,6 +188,7 @@ def overpass_request(lat_ul_merc, lon_ul_merc, lat_lr_merc, lon_lr_merc):
         f'[bbox:{lat_lr},{lon_ul},{lat_ul},{lon_lr}];'
         '(nwr[highway];'
         'nwr[railway];'
+        'nwr[aeroway~"runway|taxiway"];'
         'nwr[leisure~"track|pitch"];'
         'nwr[route=ferry];);out geom;')
 
