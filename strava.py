@@ -186,14 +186,10 @@ def overpass_request(lat_ul_merc, lon_ul_merc, lat_lr_merc, lon_lr_merc):
 
     url = "https://overpass-api.de/api/interpreter?data=" + requests.utils.quote(
         f'[bbox:{lat_lr},{lon_ul},{lat_ul},{lon_lr}];'
-        f'way[highway];out geom;'
-        f'relation[highway];>;out geom;'
-        f'way[railway];out geom;'
-        f'relation[railway];>;out geom;'
-        f'way[leisure~"track|pitch"];out geom;'
-        f'relation[leisure~"track|pitch"];>;out geom;'
-        f'way[route=ferry];out geom;'
-        f'relation[route=ferry];>;out geom;')
+        '(nwr[highway];'
+        'nwr[railway];'
+        'nwr[leisure~"track|pitch"];'
+        'nwr[route=ferry];);out geom;')
 
     for retries in range(10):
         r = requests.get(url, allow_redirects=True, stream=True)
@@ -223,7 +219,7 @@ def check_strava_tile(polygon_area, x, y, zoom):
             return
         try:
             image = Image.open(strava_tile)
-        except:
+        except Exception:
             print(f"Warning: Invalid Strava tile {strava_tile}", file=sys.stderr)
             print_debug("Strava image size = ", image.size)
             return
