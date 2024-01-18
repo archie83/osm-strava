@@ -186,7 +186,10 @@ def overpass_request(lat_ul_merc, lon_ul_merc, lat_lr_merc, lon_lr_merc):
 
     url = "https://overpass-api.de/api/interpreter?data=" + requests.utils.quote(
         f'[bbox:{lat_lr},{lon_ul},{lat_ul},{lon_lr}];'
-        '(nwr[highway];'
+        '(nwr[highway~"bridleway|corridor|crossing|cycleway|escape|footway|living_street|motorway|'
+        'motorway_link|path|pedestrian|primary|primary_link|raceway|residential|road|secondary|'
+        'secondary_link|service|steps|tertiary|tertiary_link|track|trunk|trunk_link|unclassified"];'
+        'unclassified"];'
         'nwr[railway];'
         'nwr[aeroway~"runway|taxiway"];'
         'nwr[leisure~"track|pitch"];'
@@ -258,7 +261,7 @@ def check_strava_tile(polygon_area, x, y, zoom):
             plot_line(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
             plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
 
-        # Draw the OSM multipolygons with black color on the Strava image
+        # Draw the OSM relations with black color on the Strava image
         for relation in osm_root.iter('relation'):
             area = False
             for tag in relation.iter('tag'):
@@ -274,7 +277,6 @@ def check_strava_tile(polygon_area, x, y, zoom):
                 if member.attrib['type'] == 'way' and member.attrib['role'] == 'outer':
                     member_coords.append([])
                     for node in member.iter('nd'):
-                        print("Relation member node:", node.attrib)
                         member_coords[-1].append((lon2x(float(node.attrib["lon"])),
                                                  lat2y(float(node.attrib["lat"]))))
             if area:
@@ -300,14 +302,11 @@ def check_strava_tile(polygon_area, x, y, zoom):
                     plot_circle(draw, coords, get_merc_bbox(x, y, zoom), width, pixel_size)
             else:
                 for member in relation.iter('member'):
-                    print("Relation member:", member.attrib)
                     if member.attrib['type'] == 'way':
                         member_coords = []
                         for node in member.iter('nd'):
-                            print("Relation member node:", node.attrib)
                             member_coords.append((lon2x(float(node.attrib["lon"])),
                                                  lat2y(float(node.attrib["lat"]))))
-                        print("Member coords:", member_coords)
                         plot_line(draw, member_coords, get_merc_bbox(x, y, zoom), width, pixel_size)
                         plot_circle(draw, member_coords, get_merc_bbox(x, y, zoom),
                                     width, pixel_size)
