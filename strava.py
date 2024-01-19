@@ -304,7 +304,6 @@ def check_strava_tile(polygon_area, x, y, zoom):
             image = Image.open(strava_tile)
         except Exception:
             print(f"Warning: Invalid Strava tile {strava_tile}", file=sys.stderr)
-            print_debug("Strava image size = ", image.size)
             return
         draw = ImageDraw.Draw(image)
 
