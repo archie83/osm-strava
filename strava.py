@@ -364,7 +364,7 @@ def check_strava_tile(polygon_area, x, y, zoom):
                           f'"properties":{{"id":"{id}","latitude":"{result[0]}",'
                           f'"longitude":"{result[1]}","distance":"{distance}",'
                           f'"threshold":"{threshold}","maximum":"{maximum}",'
-                          f'"threshold":"{threshold}","min_size":"{min_size}","size":"{size}"}}}}],'
+                          f'"min_size":"{min_size}","size":"{size}"}}}}],'
                           f'"id":"{id}"}}', file=geojson_file)
 
                 # Flood fill to disable the area of the issue that has been found
