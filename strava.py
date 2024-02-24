@@ -160,7 +160,7 @@ def fetch_strava_tile(zoom, x, y):
     url = f'https://strava-heatmap.tiles.freemap.sk/{activity}/hot/{zoom}/{x}/{y}.png'
     print_verbose("Downloading Strava tile at", url)
     try:
-        r = requests.get(url, allow_redirects=True)
+        r = requests.get(url, allow_redirects=True, headers={'user-agent': 'curl/8.5.0'})
         r.raise_for_status()
     except requests.exceptions.HTTPError as e:
         print_debug("Status code =", e.response.status_code)
