@@ -159,21 +159,33 @@ def fetch_strava_tile(zoom, x, y):
 
     url = f'https://strava-heatmap.tiles.freemap.sk/{activity}/hot/{zoom}/{x}/{y}.png'
     print_verbose("Downloading Strava tile at", url)
-    try:
-        r = requests.get(url, allow_redirects=True, headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0'})
-        r.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        print_debug("Status code =", e.response.status_code)
-        if e.response.status_code == 404:
-            open(cache_file_path, 'wb').write(r.content)    # Write an empty file
-        else:
+    retries = 10
+    while retries > 0:
+        try:
+            r = requests.get(url, allow_redirects=True, headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0'})
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            print_debug("Status code =", e.response.status_code)
+            if e.response.status_code == 404:
+                open(cache_file_path, 'wb').write(r.content)    # Write an empty file
+                break
+            elif e.response.status_code == 403:
+                print("Wait for 10 seconds", file=sys.stderr)
+                time.sleep(10)
             print(e, file=sys.stderr)
-        cache_file_path = None
-    except requests.exceptions.RequestException as e:
-        print(e, file=sys.stderr)
-        cache_file_path = None
-    else:
-        open(cache_file_path, 'wb').write(r.content)
+        except requests.exceptions.RequestException as e:
+            print(e, file=sys.stderr)
+        else:
+            open(cache_file_path, 'wb').write(r.content)
+            break
+        retries = retries - 1
+        print("Retries: ", retries, file=sys.stderr)
+        time.sleep(1)
+
+    if retries == 0:
+        print("Network problem, aborting", file=sys.stderr)
+        exit(1)
+
     return cache_file_path
 
 
@@ -257,7 +269,8 @@ def plot_relations(osm_root, draw, width, pixel_size):
             polygons = []
             while len(member_coords) > 0:
                 coords = member_coords.pop(0)
-                while coords[0] != coords[-1]:
+                finished = False
+                while not finished:
                     for coord in member_coords:
                         if coords[-1] == coord[0]:
                             member_coords.remove(coord)
@@ -268,6 +281,14 @@ def plot_relations(osm_root, draw, width, pixel_size):
                             coord.reverse()
                             coords = coords + coord    # Merge lists
                             break
+                    else:
+                        finished = True
+
+                if coords[0] != coords[-1]:
+                    print("Error: Polygon not closed in relation", relation.attrib['id'], file=sys.stderr)
+                    print("Please fix the problem and restart this program", file=sys.stderr)
+                    sys.exit(1)
+
                 polygons.append(coords)
 
             for coords in polygons:
@@ -304,6 +325,7 @@ def check_strava_tile(polygon_area, x, y, zoom):
             image = Image.open(strava_tile)
         except Exception:
             print(f"Warning: Invalid Strava tile {strava_tile}", file=sys.stderr)
+            os.remove(strava_tile)
             return
         draw = ImageDraw.Draw(image)
 
@@ -361,8 +383,8 @@ def check_strava_tile(polygon_area, x, y, zoom):
                     RS = chr(30)  # Record Separator ASCII control character
                     print(f'{RS}{{"type":"FeatureCollection","features":[{{"type":"Feature",'
                           f'"geometry":{{"type":"Point","coordinates":[{result[0]}, {result[1]}]}},'
-                          f'"properties":{{"id":"{id}","latitude":"{result[0]}",'
-                          f'"longitude":"{result[1]}","distance":"{distance}",'
+                          f'"properties":{{"id":"{id}","longitude":"{result[0]}",'
+                          f'"latitude":"{result[1]}","distance":"{distance}",'
                           f'"threshold":"{threshold}","maximum":"{maximum}",'
                           f'"min_size":"{min_size}","size":"{size}"}}}}],'
                           f'"id":"{id}"}}', file=geojson_file)
